@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>MENCARI MUAR | Google Login</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root{--navy:#071d48;--blue:#143e84;--gold:#d8ae64;--white:#fff}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 95% 8%,#21549f 0%,#071d48 60%);color:var(--white);display:grid;place-items:center;padding:28px;font:15px/1.6 system-ui,Arial,sans-serif}
+    .card{background:#ffffff;color:#233353;border-radius:24px;padding:clamp(26px,6vw,50px);width:min(100%,510px);box-shadow:0 20px 70px #0004;text-align:center}
+    .seal{margin:auto auto 15px;width:66px;height:66px;background:var(--navy);display:grid;place-items:center;color:var(--gold);font-size:36px;border-radius:16px;border:2px solid var(--gold)}
+    h1{margin:6px 0;font:700 clamp(30px,7vw,42px) Georgia,serif;color:var(--navy)}
+    .eyebrow{color:#8a6933;font-weight:800;font-size:11px;letter-spacing:2px}
+    p{color:#66748c;margin:18px auto;max-width:365px}
+    #googleButton{min-height:44px;display:flex;justify-content:center;align-items:center;margin:20px 0}
+    #status{font-size:13px;padding:13px;border-radius:10px;background:#f4f6fb;color:#475b79;min-height:45px}
+    .note{font-size:11px;color:#77849b;margin-top:22px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="seal">✺</div>
+    <div class="eyebrow">MUAR · JOHOR</div>
+    <h1>MENCARI MUAR</h1>
+    <strong>Google Sign-In Setup Test</strong>
+    <p>Sign in with your Google Account to test the login page on GitHub Pages.</p>
+    <div id="googleButton"></div>
+    <div id="status" role="status">Loading Google Sign-In…</div>
+    <div class="note">This is a login test page only. It does not yet create passports, collect QR stamps, or write to Google Sheets.</div>
+  </main>
+  <script>
+    // REPLACE THIS WITH YOUR REAL GOOGLE OAUTH WEB CLIENT ID.
+    // The client ID is public; never put your CLIENT SECRET in GitHub.
+    const GOOGLE_CLIENT_ID = 'PASTE_YOUR_CLIENT_ID_HERE';
+
+    function handleCredential(response) {
+      if (!response || !response.credential) {
+        document.getElementById('status').textContent = 'Login failed. Please try again.';
+        return;
+      }
+      // Do not trust personal details or grant stamps here.
+      // Production integration must POST the ID token over HTTPS
+      // and VERIFY it securely in the backend before creating the profile.
+      document.getElementById('status').textContent =
+        'Google returned a login credential. Next step: connect securely to Google Apps Script.';
+    }
+
+    function initGoogleLogin() {
+      const status = document.getElementById('status');
+      if (GOOGLE_CLIENT_ID === 'PASTE_YOUR_CLIENT_ID_HERE') {
+        status.textContent = 'Edit index.html and paste your Google OAuth Client ID first.';
+        return;
+      }
+      if (!window.google || !google.accounts || !google.accounts.id) {
+        status.textContent = 'Google login library has not loaded. Refresh this page.';
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredential,
+        ux_mode: 'popup',
+        auto_select: false
+      });
+      google.accounts.id.renderButton(document.getElementById('googleButton'), {
+        type: 'standard', theme: 'outline', size: 'large',
+        shape: 'pill', text: 'signin_with', width: 270
+      });
+      status.textContent = 'Ready — press Sign in with Google.';
+    }
+    window.addEventListener('load', initGoogleLogin);
+  </script>
+</body>
+</html>
