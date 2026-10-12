@@ -1,58 +1,101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>MENCARI MUAR | Secure Google Login</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <style>
-    :root{--navy:#071d48;--blue:#143e84;--gold:#d8ae64}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 90% 12%,#21549f,#071d48 65%);font:15px/1.6 system-ui,Arial,sans-serif;display:grid;place-items:center;padding:25px}
-    .card{width:min(100%,540px);padding:clamp(26px,6vw,48px);border-radius:25px;background:#fff;color:#1c2b45;text-align:center;box-shadow:0 18px 60px #0005}
-    .seal{height:64px;width:64px;margin:0 auto 16px;background:var(--navy);border:2px solid var(--gold);color:var(--gold);display:grid;place-items:center;border-radius:15px;font:700 38px Georgia,serif}
-    h1{font:700 clamp(29px,6vw,42px) Georgia,serif;margin:6px 0;color:var(--navy)}p{color:#63718a}
-    .eyebrow{font-size:11px;letter-spacing:2.3px;color:#966f37;font-weight:800}#googleButton{min-height:52px;display:flex;justify-content:center;align-items:center;margin:24px 0}
-    #status{padding:12px;border-radius:10px;background:#f1f4f9;color:#4b5d7d;min-height:45px}
-    .note{font-size:11px;color:#728098;margin-top:18px}a{color:var(--blue)}
-  </style>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="referrer" content="no-referrer">
+ <title>MENCARI MUAR | Remember Google Login</title>
+ <script src="https://accounts.google.com/gsi/client" async defer></script>
+ <style>
+ :root{--navy:#071d48;--gold:#d8ae64}
+ *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 90% 10%,#2651a1,var(--navy) 65%);font:15px/1.6 system-ui,Arial,sans-serif;display:grid;place-items:center;padding:20px}
+ .card{width:min(100%,540px);padding:35px;border-radius:24px;background:white;color:#1b2942;text-align:center;box-shadow:0 18px 50px #0005}
+ .seal{width:60px;height:60px;display:grid;place-items:center;margin:0 auto 15px;border:2px solid var(--gold);color:var(--gold);background:var(--navy);border-radius:16px;font:700 35px Georgia}
+ h1{font:700 36px Georgia;color:var(--navy);margin:12px 0 7px}p{color:#63718a}#googleButton{min-height:55px;margin:20px 0;display:flex;align-items:center;justify-content:center}
+ #status{background:#f1f4f9;border-radius:10px;padding:12px;color:#435572;min-height:50px;line-height:1.5}
+ .small{font-size:12px;color:#697891}a{color:#143e84}
+ </style>
 </head>
 <body>
-  <main class="card">
-    <div class="seal">M</div><div class="eyebrow">MUAR · JOHOR</div>
-    <h1>MENCARI MUAR</h1><strong>Tourism Passport · Secure Google Sign-In</strong>
-    <p>Log in to create your passport, view your stamps and continue your Muar journey.</p>
-    <div id="googleButton"></div>
-    <div id="status" role="status">Loading Google Sign-In…</div>
-    <p class="note">Your Google identity token is sent to Google Apps Script via HTTPS POST for server-side verification. It is never placed in the URL.</p>
-    <p><a id="backLink" href="#">Back to MENCARI MUAR</a></p>
-  </main>
+ <main class="card">
+  <div class="seal">M</div>
+  <div class="small">MUAR · JOHOR</div>
+  <h1>MENCARI MUAR</h1>
+  <strong>Secure Google Sign-In</strong>
+  <p>Sign in once. Your next QR checkpoints can open your passport automatically for up to 6 hours on this same browser.</p>
+  <div id="googleButton"></div>
+  <div id="status" role="status">Preparing your passport…</div>
+  <p class="small">Only a temporary random session is stored on this device, not your Google password or ID token. Sign Out or clear browser data to disconnect. Shared-device users should sign out.</p>
+  <p><a id="backLink" href="#">Back to MENCARI MUAR</a></p>
+ </main>
 <script>
-  // 1) Paste the same Google Cloud WEB CLIENT ID saved under MUAR_GOOGLE_CLIENT_ID. - UPDATE
-  const GOOGLE_CLIENT_ID='593867712059-0okvd7ocq9r9mpjepd7emq9bp41k7tvf.apps.googleusercontent.com';
-  // 2) Paste MUAR_PUBLIC_WEBAPP_URL: the PUBLIC (execute as Me) deployment /exec.
-  const APPS_SCRIPT_PUBLIC_URL='https://script.google.com/macros/s/AKfycbxl_rhhOsDeDr254CvNET15z0no5NweoonwXPzGdVJhHtbWGd9-YdosNBnlnrl-tePQ/exec';
-  const status=document.getElementById('status');
-  const rawStamp=new URLSearchParams(location.search).get('stamp')||'';
-  const stamp=/^[A-Za-z0-9-]{1,60}$/.test(rawStamp)?rawStamp:'';
-  const urlReady=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(APPS_SCRIPT_PUBLIC_URL);
-  const clientReady=/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(GOOGLE_CLIENT_ID);
-  document.getElementById('backLink').href=urlReady?APPS_SCRIPT_PUBLIC_URL+(stamp?'?stamp='+encodeURIComponent(stamp):''):'#';
-  function handleCredential(response){
-    if(!response||!response.credential){status.textContent='No Google credential received. Please try again.';return;}
-    if(!urlReady){status.textContent='Missing PUBLIC Apps Script /exec URL. Please configure login.html.';return;}
-    status.textContent='Google login accepted. Returning securely to your passport…';
-    const form=document.createElement('form');form.method='POST';form.action=APPS_SCRIPT_PUBLIC_URL;form.target='_self';form.style.display='none';
-    [['action','github_google_login'],['credential',response.credential],['stamp',stamp]].forEach(([k,v])=>{const field=document.createElement('input');field.type='hidden';field.name=k;field.value=v;form.appendChild(field);});
-    document.body.appendChild(form);form.submit();
-  }
-  function init(){
-    if(!clientReady){status.textContent='Setup required: paste your real Google OAuth Web Client ID in login.html.';return;}
-    if(!urlReady){status.textContent='Setup required: paste your public Google Apps Script /exec URL in login.html.';return;}
-    if(!window.google||!google.accounts||!google.accounts.id){status.textContent='Google sign-in library could not load. Refresh and check your browser.';return;}
-    google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleCredential,ux_mode:'popup',auto_select:false});
-    google.accounts.id.renderButton(document.getElementById('googleButton'),{theme:'outline',size:'large',shape:'pill',text:'signin_with',width:275});
-    status.textContent=stamp?'Ready to sign in and collect your QR stamp.':'Ready — choose your Google account.';
-  }
-  window.addEventListener('load',init);
+ // Same Web OAuth Client ID as MUAR_GOOGLE_CLIENT_ID in Apps Script.
+ const GOOGLE_CLIENT_ID='593867712059-0okvd7ocq9r9mpjepd7emq9bp41k7tvf.apps.googleusercontent.com';
+ // Same PUBLIC deployment /exec URL as MUAR_PUBLIC_WEBAPP_URL.
+ const APPS_SCRIPT_PUBLIC_URL='https://script.google.com/macros/s/AKfycbxl_rhhOsDeDr254CvNET15z0no5NweoonwXPzGdVJhHtbWGd9-YdosNBnlnrl-tePQ/exec';
+ const SESSION_STORAGE_KEY='mencariMuarSecureSessionV1';
+ const SESSION_TTL_MS=6*60*60*1000;
+ const statusEl=document.getElementById('status');
+ const params=new URLSearchParams(location.search);
+ const rawStamp=params.get('stamp')||'';
+ const stamp=/^[A-Za-z0-9-]{1,60}$/.test(rawStamp)?rawStamp:'';
+ const urlReady=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(APPS_SCRIPT_PUBLIC_URL);
+ const clientReady=/^[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(GOOGLE_CLIENT_ID);
+ document.getElementById('backLink').href=urlReady?APPS_SCRIPT_PUBLIC_URL+(stamp?'?stamp='+encodeURIComponent(stamp):''):'#';
+ function readSaved(){
+   try{
+     const item=JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY)||'null');
+     if(item&&/^[0-9a-f-]{36}$/i.test(item.session)&&Date.now()-item.at>=0&&Date.now()-item.at<SESSION_TTL_MS)return item.session;
+     localStorage.removeItem(SESSION_STORAGE_KEY);
+   }catch(e){}
+   return '';
+ }
+ function clearSaved(){try{localStorage.removeItem(SESSION_STORAGE_KEY);}catch(e){}}
+ function saveSession(s){try{localStorage.setItem(SESSION_STORAGE_KEY,JSON.stringify({session:s,at:Date.now()}));return true;}catch(e){return false;}}
+ function postToAppsScript(fields){
+   const f=document.createElement('form');f.method='POST';f.action=APPS_SCRIPT_PUBLIC_URL;f.target='_self';f.style.display='none';
+   Object.entries(fields).forEach(([key,value])=>{const i=document.createElement('input');i.type='hidden';i.name=key;i.value=String(value||'');f.appendChild(i);});
+   document.body.appendChild(f);f.submit();
+ }
+ function handleCredential(response){
+   if(!response||!response.credential){statusEl.textContent='Google did not return a credential. Please try again.';return;}
+   if(!urlReady){statusEl.textContent='Missing Apps Script PUBLIC URL in login.html.';return;}
+   statusEl.textContent='Verifying your Google account securely…';
+   // ID token is sent only in HTTPS POST body, NEVER in localStorage or URL.
+   postToAppsScript({action:'github_google_login',credential:response.credential,stamp});
+ }
+ function showGoogleButton(){
+   if(!clientReady){statusEl.textContent='Setup required: enter your real OAuth Web Client ID in login.html.';return;}
+   if(!window.google||!google.accounts||!google.accounts.id){statusEl.textContent='Google library did not load. Refresh the page.';return;}
+   google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:handleCredential,ux_mode:'popup',auto_select:false});
+   google.accounts.id.renderButton(document.getElementById('googleButton'),{theme:'outline',size:'large',shape:'pill',text:'signin_with',width:270});
+   statusEl.textContent=stamp?'Sign in to collect this QR stamp.':'Choose a Google account to open your passport.';
+ }
+ function init(){
+   // Always scrub fragment before any other web scripts can read it.
+   const frag=new URLSearchParams(location.hash.replace(/^#/,''));
+   history.replaceState(null,'',location.pathname+location.search);
+   const handoff=frag.get('session')||'';
+   const handoffStamp=frag.get('stamp')||'';
+   const validHandoffStamp=/^[A-Za-z0-9-]{1,60}$/.test(handoffStamp)?handoffStamp:'';
+   const effectiveStamp=validHandoffStamp||stamp;
+   if(!urlReady){statusEl.textContent='Setup required: enter your Apps Script PUBLIC /exec URL.';return;}
+   if(params.get('logout')==='1'){
+     const old=readSaved();clearSaved();
+     try{google.accounts.id.disableAutoSelect();}catch(e){}
+     if(old){statusEl.textContent='Signing out securely…';postToAppsScript({action:'github_google_logout',session:old});return;}
+     statusEl.textContent='Signed out successfully.';showGoogleButton();return;
+   }
+   if(params.get('clear')==='1')clearSaved();
+   if(handoff&&/^[0-9a-f-]{36}$/i.test(handoff)){
+     const stored=saveSession(handoff);
+     statusEl.textContent=stored?'Saved sign-in on this browser. Opening your passport…':'Browser blocks saved sessions. Opening passport for this visit only…';
+     postToAppsScript({action:'github_google_resume',session:handoff,stamp:effectiveStamp});return;
+   }
+   const saved=readSaved();
+   if(saved){statusEl.textContent='Welcome back! Your saved login is active. Opening passport automatically…';postToAppsScript({action:'github_google_resume',session:saved,stamp:effectiveStamp});return;}
+   showGoogleButton();
+ }
+ window.addEventListener('load',init);
 </script>
 </body></html>
