@@ -105,11 +105,7 @@
    if(saved){statusEl.textContent='Welcome back! Your saved login is active. Opening passport automatically…';postToAppsScript({action:'github_google_resume',session:saved,stamp:effectiveStamp,lang:MUAR_LANG()});return;}
    showGoogleButton();
  }
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init, { once: true });
-} else {
-  init();
-}
+window.addEventListener('load', init);
 </script>
 <script>
 /* MENCARI MUAR bilingual UI — does not change any stamp IDs, addresses, data or permissions. */
